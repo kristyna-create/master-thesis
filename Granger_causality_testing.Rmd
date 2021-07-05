@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+We will use medium VAR to test for Granger non-causality among variables
+
+1. determine the maximum order of integration
+
+
+
+```{r}
+cs_hpi <- adf_kpss_level$X__21
+cs_hpi <- diff(cs_hpi)
+test <- ur.df(cs_hpi, type = "drift", lags = trunc((length(cs_hpi)-1)^(1/3)))
+summary(test)
+#adf.test(transformed_data$X1) #null hypothesis: series contains a unit root
+kpss.test(cs_hpi, null = "Level") #default null: series is level stationary, put kpss.test(x, null = c("Level", "Trend"), lshort = TRUE) for trend stationary
+```
+
+
+```{r}
+x <- detrend(adf_kpss_level$X8, tt = 'linear')
+```
+
+```{r}
+test <- ur.df(x, type = "drift", lags = trunc((length(x)-1)^(1/3)))
+summary(test)
+#adf.test(transformed_data$X1) #null hypothesis: series contains a unit root
+kpss.test(x, null = "Level")
+```
+
+
+2. Set up VAR in levels and determine the optimal lag length
+```{r}
+medium_level <- data.frame(log(adf_kpss_level$X__1),log(adf_kpss_level$X__2),log(adf_kpss_level$X__8),log(adf_kpss_level$X__9),adf_kpss_level$X__15,adf_kpss_level$X__21)
+VARselect(medium_level, lag.max = 12, type = "const")
+```
+SIC suggests 4 lags, so we will try 4 lags 
+
+
+```{r}
+fit <- VAR(medium_level, p = 7, type = "const")
+roots(fit)
+```
+this VAR is stable
+```{r}
+resid <- residuals(fit)
+```
+
+```{r}
+print(as.data.frame(LjungBox(resid,lags=seq(1,30)))) #null hypothesis: there is no serial correlation
+```
+
+```{r}
+exo_vars <- data.frame(Lag(medium_level$adf_kpss_level.X__1,shift = 8), Lag(medium_level$adf_kpss_level.X__1,shift = 9), Lag(medium_level$adf_kpss_level.X__2,shift = 8),Lag(medium_level$adf_kpss_level.X__2,shift = 9),Lag(medium_level$adf_kpss_level.X__8,shift = 8),Lag(medium_level$adf_kpss_level.X__8,shift = 9),Lag(medium_level$adf_kpss_level.X__9,shift = 8),Lag(medium_level$adf_kpss_level.X__9,shift = 9),Lag(medium_level$adf_kpss_level.X__15,shift = 8),Lag(medium_level$adf_kpss_level.X__15,shift = 9),Lag(medium_level$adf_kpss_level.X__21,shift = 8),Lag(medium_level$adf_kpss_level.X__21,shift = 9))
+```
+
+
+```{r}
+Gr_VAR <- VAR(medium_level, p=7, type = "const", exogen = exo_vars)
+```
+
+```{r}
+causality(Gr_VAR)
+```
+```{r}
+options("scipen"=100, "digits"=4)
+```
+
+
+```{r}
+stat.desc(ipi_Tr, basic=FALSE, desc=FALSE, norm=TRUE, p=0.95)
+```
+
+
+```{r}
+shapiro.test(ipi_Tr$X__1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

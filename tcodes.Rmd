@@ -1,0 +1,632 @@
+---
+title: "Transformation Codes"
+output: html_notebook:
+          self_contained: no
+---
+
+
+
+```{r}
+library(portes)
+library(parallel)
+library(tseries)
+library(readr)
+library(urca)
+install.packages("Hmisc",
+                 repos = c("http://rstudio.org/_packages",
+                           "http://cran.rstudio.com"))
+```
+
+
+Variables in levels - testing for stationarity
+
+Real GDP
+```{r}
+plot(tcodes$X1, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X1, type = "trend", lags = trunc((length(tcodes$X1)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X1, null = "Trend") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+-we strongly reject trend stationarity and we cannot reject phi3 null => it has a unit root with drift
+- use tcode 5
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+
+
+S&P/Case-Shiller U.S. National Home Price Index
+
+
+```{r}
+plot(tcodes$X20, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X20, type = "trend", lags = trunc((length(tcodes$X20)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X20, null = "Trend") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+-we strongly reject trend stationarity and we cannot reject phi3 null => it has a unit root with drift
+- use tcode 5
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+
+Capacity utilization
+
+
+```{r}
+plot(tcodes$X33, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly not growing over time - use adf test with a drift and kpss test for level stationarity
+
+```{r}
+test <- ur.df(tcodes$X33, type = "drift", lags = trunc((length(tcodes$X33)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X33, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+-phi1 is strongly rejected, tau2 is also, so we conclude that it is stationary -> code 1
+(but level stationarity is rejected at 5%)
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Civilian unemployment rate
+
+
+```{r}
+plot(tcodes$X34, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly not growing over time - use adf test with a drift and kpss test for level stationarity
+
+```{r}
+test <- ur.df(tcodes$X34, type = "drift", lags = trunc((length(tcodes$X34)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X34, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+- it is non-stationary, we cannot reject the null plus level stationarity strongly rejected
+
+```{r}
+ha <- diff(tcodes$X34)
+test <- ur.df(ha, type = "drift", lags = trunc((length(ha)-1)^(1/3)))
+summary(test)
+
+kpss.test(ha, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+-still non-stationary in log first differences
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Average hourly earnings
+
+```{r}
+plot(tcodes$X36, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X36, type = "trend", lags = trunc((length(tcodes$X36)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X36, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+-we cannot reject the null of phi3 => unit root with drift
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Real disposable personal income
+
+
+```{r}
+plot(tcodes$X32, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X32, type = "trend", lags = trunc((length(tcodes$X32)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X32, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-the same story as before -> code 5
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Real personal consumption expenditures
+
+```{r}
+plot(tcodes$X28, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X28, type = "trend", lags = trunc((length(tcodes$X28)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X28, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-unit root with drift -> 5
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Real Private Residential Fixed Investment
+
+```{r}
+plot(tcodes$X2, type = 'l', xlab = 'year',  ylab = '')
+```
+
+
+-we cannot say if it's growing or not (in the long run, it should be growing)
+=> conduct t-test for Case 1: as if it is growing
+
+```{r}
+test <- ur.df(tcodes$X2, type = "trend", lags = trunc((length(tcodes$X2)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X2, null = "Trend") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+
+test2 <- ur.df(tcodes$X2, type = "drift", lags = trunc((length(tcodes$X2)-1)^(1/3)))
+summary(test2)
+
+kpss.test(tcodes$X2, null = "Level")
+
+```
+- by KPSS test we can strongly reject the null of trend stationarity
+
+from ADF test:
+-phi3 null can be rejected at 5% but not at 1% - either there is no unit root and no trend, or unit root plus trend, or no unit root and deterministic trend - the 2nd option is not much plausible, the third option is ruled out by KPSS test for trend stationarity and by test3
+-trend is not significant - see test3!!
+-tau2: o trochu nemuzeme vyloucit unit root na 5%
+
+
+-from the first test, we have more evidence that there is not a unit root - rejected at 5%
+
+```{r}
+ldif <- diff(log(tcodes$X2))
+
+test2 <- ur.df(ldif, type = "drift", lags = trunc((length(ldif)-1)^(1/3)))
+summary(test2)
+
+kpss.test(ldif, null = "Level")
+```
+
+
+Detrend it, use the residuals
+```{r}
+rinv <- ts(tcodes$X2, start = c(1999,1), frequency = 12)
+Trend <- seq(1:length(tcodes$X2))
+lag1 <- Lag(rinv, shift = 1)
+```
+
+
+```{r}
+model <- lm(rinv ~ Trend)
+summary(model)
+e <- residuals(model)
+```
+
+```{r}
+kpss.test(e)
+t <- ur.df(e, type = "drift", lags = trunc((length(e)-1)^(1/3)))
+summary(t)
+```
+
+
+
+
+
+
+-we cannot reject the null of a unit root
+-use transformation 1, still it is not good
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+CPI
+```{r}
+plot(tcodes$X18, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X18, type = "trend", lags = trunc((length(tcodes$X18)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X18, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-strong evidence of a unit root with drift
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Mortgage debt outstanding
+```{r}
+plot(tcodes$X16, type = 'l', xlab = 'year',  ylab = '')
+```
+
+-we are not sure if it's growing over time or not => conduct the growing case
+
+```{r}
+test <- ur.df(tcodes$X16, type = "trend", lags = trunc((length(tcodes$X16)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X16, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-cannot reject phi3 or tau3 => unit root with or without drift
+
+trend in the regression above is not significant:
+```{r}
+test <- ur.df(tcodes$X16, type = "drift", lags = trunc((length(tcodes$X16)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X16, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Housing starts
+
+```{r}
+plot(tcodes$X35, type = 'l', xlab = 'year',  ylab = '')
+```
+
+-not sure if it's growing => include trend to tests
+
+```{r}
+test <- ur.df(tcodes$X35, type = "trend", lags = trunc((length(tcodes$X35)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X35, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-cannot reject => unit root with or without drift
+
+trend in the regression above is not significant =>
+```{r}
+test <- ur.df(tcodes$X35, type = "drift", lags = trunc((length(tcodes$X35)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X35, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Total reserves
+```{r}
+plot(tcodes$X40, type = 'l', xlab = 'year',  ylab = '')
+```
+
+don't know if it's growing over time
+
+```{r}
+test <- ur.df(tcodes$X40, type = "trend", lags = trunc((length(tcodes$X40)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X40, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-same as before: unit root with or without drift
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+M2
+```{r}
+plot(tcodes$X27, type = 'l', xlab = 'year',  ylab = '')
+```
+
+clearly growing over time - use adf test with a trend and kpss test for trend stationarity
+
+```{r}
+test <- ur.df(tcodes$X27, type = "trend", lags = trunc((length(tcodes$X27)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X27, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-> unit root with drift
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+10-year treasury
+```{r}
+plot(tcodes$X26, type = 'l', xlab = 'year',  ylab = '')
+```
+
+don't know if it's growing or not, it may have a decreasing trend during our subsample
+
+```{r}
+test <- ur.df(tcodes$X26, type = "trend", lags = trunc((length(tcodes$X26)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X26, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-unit root, but we won't use any transformation, since it's a rate
+
+```{r}
+test <- ur.df(tcodes$X26, type = "drift", lags = trunc((length(tcodes$X26)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X26, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Mortgage average
+```{r}
+plot(tcodes$X51, type = 'l', xlab = 'year',  ylab = '')
+```
+
+don't know
+
+```{r}
+test <- ur.df(tcodes$X51, type = "trend", lags = trunc((length(tcodes$X51)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X51, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-same as before
+
+```{r}
+test <- ur.df(tcodes$X51, type = "drift", lags = trunc((length(tcodes$X51)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X51, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Oil price
+```{r}
+plot(tcodes$X37, type = 'l', xlab = 'year',  ylab = '')
+```
+
+don't know
+
+```{r}
+test <- ur.df(tcodes$X37, type = "trend", lags = trunc((length(tcodes$X37)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X37, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+->unit root with or without drift
+
+-trend in the regression above is insignificant=>
+```{r}
+test <- ur.df(tcodes$X37, type = "drift", lags = trunc((length(tcodes$X37)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X37, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+S&P 500
+```{r}
+plot(tcodes$X31, type = 'l', xlab = 'year',  ylab = '')
+```
+
+don't know
+
+```{r}
+test <- ur.df(tcodes$X31, type = "trend", lags = trunc((length(tcodes$X31)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X31, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-> unit root
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+global price index - commodities
+```{r}
+plot(tcodes$X49, type = 'l', xlab = 'year',  ylab = '')
+```
+
+don't know
+
+```{r}
+test <- ur.df(tcodes$X49, type = "trend", lags = trunc((length(tcodes$X49)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X49, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+-> unit root
+
+-trend is insignificant =>
+```{r}
+test <- ur.df(tcodes$X49, type = "drift", lags = trunc((length(tcodes$X49)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X49, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Real Broad Effective Exchange Rate
+
+```{r}
+plot(tcodes$X41, type = 'l', xlab = 'year',  ylab = '')
+```
+not growing
+
+```{r}
+test <- ur.df(tcodes$X41, type = "drift", lags = trunc((length(tcodes$X41)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X41, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-> unit root
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Volatility
+```{r}
+plot(tcodes$X52, type = 'l', xlab = 'year',  ylab = '')
+```
+
+not growing
+
+```{r}
+test <- ur.df(tcodes$X52, type = "drift", lags = trunc((length(tcodes$X52)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X52, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+-still cannot reject -> unit root
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
+Wu&Xia rate
+```{r}
+plot(tcodes$X24, type = 'l', xlab = 'year',  ylab = '')
+```
+
+```{r}
+test <- ur.df(tcodes$X24, type = "trend", lags = trunc((length(tcodes$X24)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X24, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+
+
+```{r}
+test <- ur.df(tcodes$X24, type = "drift", lags = trunc((length(tcodes$X24)-1)^(1/3)))
+summary(test)
+
+kpss.test(tcodes$X24, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+Industrial production index
+```{r}
+plot(ipi_L$X1, type = 'l', xlab = 'year',  ylab = '')
+```
+
+-we are unsure whether it is growing or not
+
+```{r}
+test <- ur.df(ipi_L$X1, type = "trend", lags = trunc((length(ipi_L$X1)-1)^(1/3)))
+summary(test)
+
+kpss.test(ipi_L$X1, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+Detrend it, use the residuals
+```{r}
+indpro <- ts(ipi_L$X1, start = c(1999,1), frequency = 12)
+Trend <- seq(1:length(ipi_L$X1))
+#lag1 <- Lag(rinv, shift = 1)
+```
+
+
+```{r}
+model <- lm(indpro ~ Trend)
+summary(model)
+e <- residuals(model)
+```
+
+```{r}
+test <- ur.df(e, type = "drift", lags = trunc((length(e)-1)^(1/3)))
+summary(test)
+
+kpss.test(e, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+MA real GDP index
+```{r}
+plot(ma_gdp_L$X1, type = 'l', xlab = 'year',  ylab = '')
+```
+
+-clearly growing
+
+```{r}
+test <- ur.df(ma_gdp_L$X1, type = "trend", lags = trunc((length(ma_gdp_L$X1)-1)^(1/3)))
+summary(test)
+
+kpss.test(ma_gdp_L$X1, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+FHFA House Price Index
+
+```{r}
+plot(fhfa_hpi_L$X1, type = 'l', xlab = 'year',  ylab = '')
+```
+
+-clearly growing
+
+```{r}
+test <- ur.df(fhfa_hpi_L$X1, type = "trend", lags = trunc((length(fhfa_hpi_L$X1)-1)^(1/3)))
+summary(test)
+
+kpss.test(fhfa_hpi_L$X1, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+
+adf.test
+```
+
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+Krippner's SSR
+
+```{r}
+plot(krippner_ssr_L$X1, type = 'l', xlab = 'year',  ylab = '')
+```
+
+-don't know
+
+```{r}
+test <- ur.df(krippner_ssr_L$X1, type = "trend", lags = trunc((length(krippner_ssr_L$X1)-1)^(1/3)))
+summary(test)
+
+kpss.test(krippner_ssr_L$X1, null = "T") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+```{r}
+test <- ur.df(krippner_ssr_L$X1, type = "drift", lags = trunc((length(krippner_ssr_L$X1)-1)^(1/3)))
+summary(test)
+
+kpss.test(krippner_ssr_L$X1, null = "L") #default null: series is level stationary, put kpss.test(x, null = "Trend", lshort = TRUE) for trend stationarity
+```
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------

@@ -1,0 +1,39 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(vars)
+```
+
+
+
+```{r}
+small <- data.frame(adf_kpss_transformed$X1,adf_kpss_transformed$X2,adf_kpss_transformed$X9,adf_kpss_transformed$X21)
+```
+
+```{r}
+medium <- data.frame(adf_kpss_transformed$X1,adf_kpss_transformed$X2,adf_kpss_transformed$X8,adf_kpss_transformed$X9,adf_kpss_transformed$X15,adf_kpss_transformed$X21)
+```
+
+```{r}
+large <- adf_kpss_transformed
+```
+
+
+```{r}
+VARselect(adf_kpss_transformed, lag.max = 9, type = "const")
+```
+
+```{r}
+VARselect(medium, lag.max = 12, type = "const")
+```
+
+```{r}
+VARselect(large, lag.max = 9, type = "const") #muselo byt omezeno na 9, protoze na zbytek neni dost degrees of freedom
+```
+
+
+
+
